@@ -1,0 +1,93 @@
+`default_nettype none
+// Cached feature entry: elastic fetch with original lookahead CPU capture retained.
+module rv32_cached_core_bus #(
+    parameter [31:0] RESET_PC=0,
+    parameter LOCAL_MEMORY_LOOKAHEAD=0,
+    parameter LOCAL_MEMORY_RESPONSE_CLASS=0
+)(
+    input wire clk,rst_n,
+    output wire i_req_valid_o,input wire i_req_ready_i,output wire [31:0] i_req_pc_o,
+    input wire i_rsp_valid_i,output wire i_rsp_ready_o,
+    input wire [95:0] i_rsp_data_i,input wire [2:0] i_rsp_error_i,
+    output wire d0_req_valid_o,input wire d0_req_ready_i,output wire d0_req_write_o,
+    output wire [31:0] d0_req_addr_o,d0_req_data_o,output wire [3:0] d0_req_strb_o,
+    input wire d0_rsp_valid_i,output wire d0_rsp_ready_o,
+    input wire [31:0] d0_rsp_data_i,input wire d0_rsp_error_i,
+    output wire d1_req_valid_o,input wire d1_req_ready_i,output wire d1_req_write_o,
+    output wire [31:0] d1_req_addr_o,d1_req_data_o,output wire [3:0] d1_req_strb_o,
+    input wire d1_rsp_valid_i,output wire d1_rsp_ready_o,
+    input wire [31:0] d1_rsp_data_i,input wire d1_rsp_error_i,
+    input wire [1:0] dmem_local_ram_i,
+    input wire irq_external_i,irq_software_i,irq_timer_i,
+    output wire [2:0] commit_valid_o,commit_write_o,
+    output wire [95:0] commit_pc_o,commit_instr_o,commit_data_o,
+    output wire [14:0] commit_rd_o,
+    output wire trap_valid_o,output wire [31:0] trap_pc_o,trap_cause_o,trap_tval_o,
+    output wire [31:0] imem_next_pc_o,dmem_preview_addr0_o,dmem_preview_addr1_o,
+    output wire [31:0] dmem_preview_load1_o,
+    output wire [13:0] imem_next_word1_o,imem_next_word2_o,
+    output wire [1:0] dmem_preview_valid_o
+);
+    // Compatibility candidate: retain old elastic cache and MMIO protocol.
+    // LOCAL fast paths need a separate synchronous-memory adapter; reject here.
+    // synthesis translate_off
+    initial if (LOCAL_MEMORY_LOOKAHEAD || LOCAL_MEMORY_RESPONSE_CLASS)
+        $fatal(1,"[TB_ERROR] CPU cache adapter requires local options zero");
+    // synthesis translate_on
+    rv32_core_bus #(.RESET_PC(RESET_PC),.LOCAL_MEMORY_LOOKAHEAD(0),
+        .LOCAL_MEMORY_RESPONSE_CLASS(0),.ROM_SCHEDULE(0),.LOCAL_LOAD0_PAYLOAD_VIEW(0)) u_core (
+        .clk(clk),
+        .rst_n(rst_n),
+        .i_req_valid_o(i_req_valid_o),
+        .i_req_ready_i(i_req_ready_i),
+        .i_req_pc_o(i_req_pc_o),
+        .i_rsp_valid_i(i_rsp_valid_i),
+        .i_rsp_ready_o(i_rsp_ready_o),
+        .i_rsp_data_i(i_rsp_data_i),
+        .i_rsp_error_i(i_rsp_error_i),
+        .d0_req_valid_o(d0_req_valid_o),
+        .d0_req_ready_i(d0_req_ready_i),
+        .d0_req_write_o(d0_req_write_o),
+        .d0_req_addr_o(d0_req_addr_o),
+        .d0_req_data_o(d0_req_data_o),
+        .d0_req_strb_o(d0_req_strb_o),
+        .d0_rsp_valid_i(d0_rsp_valid_i),
+        .d0_rsp_ready_o(d0_rsp_ready_o),
+        .d0_rsp_data_i(d0_rsp_data_i),
+        .d0_rsp_error_i(d0_rsp_error_i),
+        .d1_req_valid_o(d1_req_valid_o),
+        .d1_req_ready_i(d1_req_ready_i),
+        .d1_req_write_o(d1_req_write_o),
+        .d1_req_addr_o(d1_req_addr_o),
+        .d1_req_data_o(d1_req_data_o),
+        .d1_req_strb_o(d1_req_strb_o),
+        .d1_rsp_valid_i(d1_rsp_valid_i),
+        .d1_rsp_ready_o(d1_rsp_ready_o),
+        .d1_rsp_data_i(d1_rsp_data_i),
+        .d1_rsp_error_i(d1_rsp_error_i),
+        .dmem_local_ram_i(dmem_local_ram_i),
+        .irq_external_i(irq_external_i),
+        .irq_software_i(irq_software_i),
+        .irq_timer_i(irq_timer_i),
+        .commit_valid_o(commit_valid_o),
+        .commit_write_o(commit_write_o),
+        .commit_pc_o(commit_pc_o),
+        .commit_instr_o(commit_instr_o),
+        .commit_data_o(commit_data_o),
+        .commit_rd_o(commit_rd_o),
+        .trap_valid_o(trap_valid_o),
+        .trap_pc_o(trap_pc_o),
+        .trap_cause_o(trap_cause_o),
+        .trap_tval_o(trap_tval_o),
+        .imem_next_pc_o(imem_next_pc_o),
+        .dmem_preview_addr0_o(dmem_preview_addr0_o),
+        .dmem_preview_addr1_o(dmem_preview_addr1_o),
+        .dmem_preview_load1_o(dmem_preview_load1_o),
+        .imem_next_word1_o(imem_next_word1_o),
+        .imem_next_word2_o(imem_next_word2_o),
+        .dmem_preview_valid_o(dmem_preview_valid_o),
+        .i_rsp_schedule_i(33'b0),
+        .dmem_local_payload_i(32'b0),
+        .dmem_ram_read_ahead1_o());
+endmodule
+`default_nettype wire

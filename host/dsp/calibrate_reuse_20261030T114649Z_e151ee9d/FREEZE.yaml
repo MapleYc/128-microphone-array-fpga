@@ -1,0 +1,4 @@
+format: source-integrity-v1
+source_sha256:
+  scripts/calibrate_reuse.py: 58b58750f36f2dd07240119a01be1d1e6d137fa28d7277165193742cf967de8a
+  scripts/calibrate_reuse_stream.py: d8a77903fb22ebae5d09b1cc8e70c795b708cc7b2c0d04d85b9bd872e19ddfcc

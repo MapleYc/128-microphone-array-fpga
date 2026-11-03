@@ -1,0 +1,13 @@
+Upstream: https://github.com/eembc/coremark
+Pinned commit: 1f483d5b8316753a742cbf5590caf5bd0a4e4777
+
+The five benchmark algorithm C files match the original fixed checkout byte for byte and match the five entries in upstream coremark.md5. The benchmark algorithm files have not been edited.
+
+The retained coremark.h matches the pinned checkout byte for byte:
+  SHA256: 42642b9a06c7ed2b3bd9eda971b7c3868c4f5d27bf7ef6c4bba11291a0c2598a
+  Git blob: d0542004edffe6685e093892980b35d96db5ab04
+The upstream header was last changed by commit 4ee6ecaa9a081bc3378afc0f58f2f35b61f10b55 (Fix typo), while its entry in coremark.md5 was not refreshed. The header is verified against the pinned commit/blob and SHA256; this package does not claim that the stale header MD5 entry passes.
+
+vendor/coremark/LICENSE.md retains the original CoreMark acceptable-use agreement, trademark and author attribution, and Apache License 2.0. Source-file notices remain intact.
+
+platform.c, start.S, link.ld and port/core_portme.c/h originate from the existing bare-metal platform adaptation. platform.h defaults and actual build defines are set to the current array CPU interface: 63MHz cycle counter, UART921600, RV32I_ZMMUL/ILP32. This source-only distribution includes no historical board result. Freshly built images require their own execution, CRC and timing evidence.

@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*.dll
+*.exe
+*.o
+*.obj
+native_build/
+runtime/
+runs/
+config/connection.yaml
+config/camera_alignment_local.yaml
+config/local_alignment.yaml
+.env
+.env.*
+!.env.example

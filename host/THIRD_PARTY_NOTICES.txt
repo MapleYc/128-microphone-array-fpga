@@ -1,0 +1,8 @@
+本包保留现有源码中的版权、许可与上游归属；不替权利人增加新的授权。
+
+licenses/Qt：Qt许可和QtCore第三方组件归属材料。Qt开发包及运行库由使用者另外安装，本包不分发Qt二进制。
+licenses/MinGW：GCC、MinGW-w64和winpthreads许可及运行库例外材料。编译器及运行库由外部工具链提供。
+licenses/pyserial以及host/vendor/pyserial-3.5.dist-info：pyserial 3.5的许可证与分发元数据；源码随包保留。
+NumPy、SciPy、Pillow、psutil、threadpoolctl、PyYAML由requirements.txt声明并通过Python环境安装，其自身许可随相应分发包提供。
+
+处理参数中的上游算法参考保持为honokawings/MicArray提交aa281b34b041e098b8ccb9dd56afca5587b0dd91，源码已有归属不作删除。本项目自有代码的仓库发布许可证由项目所有者指定。

@@ -1,0 +1,73 @@
+`default_nettype none
+module meeting_pair_rom(input wire [5:0] index,output reg [6:0] a,b,output reg [5:0] max_lag);
+always @* begin
+a=0;b=1;max_lag=0;case(index)
+6'd0:begin a=7'd63;b=7'd127;max_lag=6'd56;end
+6'd1:begin a=7'd15;b=7'd79;max_lag=6'd56;end
+6'd2:begin a=7'd31;b=7'd93;max_lag=6'd55;end
+6'd3:begin a=7'd45;b=7'd111;max_lag=6'd55;end
+6'd4:begin a=7'd47;b=7'd125;max_lag=6'd54;end
+6'd5:begin a=7'd61;b=7'd123;max_lag=6'd54;end
+6'd6:begin a=7'd13;b=7'd77;max_lag=6'd54;end
+6'd7:begin a=7'd29;b=7'd95;max_lag=6'd53;end
+6'd8:begin a=7'd43;b=7'd109;max_lag=6'd52;end
+6'd9:begin a=7'd59;b=7'd126;max_lag=6'd52;end
+6'd10:begin a=7'd11;b=7'd78;max_lag=6'd52;end
+6'd11:begin a=7'd30;b=7'd91;max_lag=6'd51;end
+6'd12:begin a=7'd27;b=7'd110;max_lag=6'd50;end
+6'd13:begin a=7'd62;b=7'd107;max_lag=6'd50;end
+6'd14:begin a=7'd14;b=7'd60;max_lag=6'd50;end
+6'd15:begin a=7'd12;b=7'd75;max_lag=6'd49;end
+6'd16:begin a=7'd28;b=7'd94;max_lag=6'd48;end
+6'd17:begin a=7'd46;b=7'd108;max_lag=6'd48;end
+6'd18:begin a=7'd58;b=7'd121;max_lag=6'd48;end
+6'd19:begin a=7'd9;b=7'd76;max_lag=6'd47;end
+6'd20:begin a=7'd25;b=7'd92;max_lag=6'd46;end
+6'd21:begin a=7'd44;b=7'd89;max_lag=6'd46;end
+6'd22:begin a=7'd41;b=7'd124;max_lag=6'd46;end
+6'd23:begin a=7'd73;b=7'd122;max_lag=6'd45;end
+6'd24:begin a=7'd10;b=7'd74;max_lag=6'd44;end
+6'd25:begin a=7'd26;b=7'd90;max_lag=6'd44;end
+6'd26:begin a=7'd42;b=7'd106;max_lag=6'd43;end
+6'd27:begin a=7'd57;b=7'd120;max_lag=6'd43;end
+6'd28:begin a=7'd8;b=7'd72;max_lag=6'd42;end
+6'd29:begin a=7'd24;b=7'd87;max_lag=6'd41;end
+6'd30:begin a=7'd39;b=7'd105;max_lag=6'd41;end
+6'd31:begin a=7'd55;b=7'd103;max_lag=6'd41;end
+6'd32:begin a=7'd56;b=7'd119;max_lag=6'd39;end
+6'd33:begin a=7'd7;b=7'd71;max_lag=6'd39;end
+6'd34:begin a=7'd23;b=7'd88;max_lag=6'd38;end
+6'd35:begin a=7'd40;b=7'd104;max_lag=6'd38;end
+6'd36:begin a=7'd53;b=7'd117;max_lag=6'd36;end
+6'd37:begin a=7'd5;b=7'd69;max_lag=6'd36;end
+6'd38:begin a=7'd21;b=7'd86;max_lag=6'd36;end
+6'd39:begin a=7'd38;b=7'd101;max_lag=6'd35;end
+6'd40:begin a=7'd54;b=7'd102;max_lag=6'd34;end
+6'd41:begin a=7'd52;b=7'd118;max_lag=6'd33;end
+6'd42:begin a=7'd6;b=7'd70;max_lag=6'd33;end
+6'd43:begin a=7'd22;b=7'd85;max_lag=6'd33;end
+6'd44:begin a=7'd37;b=7'd100;max_lag=6'd31;end
+6'd45:begin a=7'd51;b=7'd115;max_lag=6'd30;end
+6'd46:begin a=7'd4;b=7'd67;max_lag=6'd30;end
+6'd47:begin a=7'd20;b=7'd83;max_lag=6'd29;end
+6'd48:begin a=7'd35;b=7'd84;max_lag=6'd27;end
+6'd49:begin a=7'd36;b=7'd116;max_lag=6'd27;end
+6'd50:begin a=7'd68;b=7'd114;max_lag=6'd26;end
+6'd51:begin a=7'd3;b=7'd66;max_lag=6'd26;end
+6'd52:begin a=7'd19;b=7'd82;max_lag=6'd23;end
+6'd53:begin a=7'd34;b=7'd99;max_lag=6'd23;end
+6'd54:begin a=7'd50;b=7'd113;max_lag=6'd22;end
+6'd55:begin a=7'd2;b=7'd65;max_lag=6'd21;end
+6'd56:begin a=7'd18;b=7'd81;max_lag=6'd18;end
+6'd57:begin a=7'd17;b=7'd98;max_lag=6'd18;end
+6'd58:begin a=7'd1;b=7'd49;max_lag=6'd17;end
+6'd59:begin a=7'd48;b=7'd97;max_lag=6'd14;end
+6'd60:begin a=7'd0;b=7'd80;max_lag=6'd12;end
+6'd61:begin a=7'd33;b=7'd112;max_lag=6'd10;end
+6'd62:begin a=7'd16;b=7'd64;max_lag=6'd8;end
+6'd63:begin a=7'd32;b=7'd96;max_lag=6'd5;end
+default:begin end
+endcase
+end
+endmodule
+`default_nettype wire

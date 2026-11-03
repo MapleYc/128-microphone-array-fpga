@@ -1,0 +1,160 @@
+# Only the actual 27 MHz input and the two exact GPLL cascade clocks.
+create_clock -name sys27 -period 37.037037037 [get_ports sys_clk_27]
+create_generated_clock -name audio96 -source [get_ports sys_clk_27] -multiply_by 32 -divide_by 9 [get_pins {clocks.u_audio.u_pll96.u_gpll/CLKOUT0}]
+create_generated_clock -name audio122 -source [get_pins {clocks.u_audio.u_pll96.u_gpll/CLKOUT0}] -multiply_by 32 -divide_by 25 [get_pins {clocks.u_audio.u_audio_pll.u_gpll/CLKOUT0}]
+create_generated_clock -name cpu63 -source [get_ports sys_clk_27] -multiply_by 7 -divide_by 3 [get_pins {clocks.u_cpu_pll.u_gpll/CLKOUT0}]
+set_clock_uncertainty 0.150 [get_clocks {sys27 audio96 audio122 cpu63}]
+# Explicit bounded CDC data paths, not blanket asynchronous clock groups.
+set_max_delay 7.500 -datapath_only -from [get_clocks audio122] -to [get_clocks cpu63]
+set_max_delay 7.500 -datapath_only -from [get_clocks cpu63] -to [get_clocks audio122]
+set_false_path -hold -from [get_clocks audio122] -to [get_clocks cpu63]
+set_false_path -hold -from [get_clocks cpu63] -to [get_clocks audio122]
+set_false_path -from [get_ports reset_n]
+set_false_path -from [get_pins {clocks.u_audio.u_pll96.u_gpll/LOCK clocks.u_audio.u_audio_pll.u_gpll/LOCK}]
+set_false_path -to [get_pins -hierarchical {*release_pipe*/C}]
+set_false_path -to [get_pins {clocks.u_audio.u_pll96.u_gpll/RST clocks.u_audio.u_audio_pll.u_gpll/RST}]
+# Engineering PDM round-trip assumptions, inherited from the pinned sampler:
+# sample at tick19 with 2 FF latency -> 17 * 8.1380208 = 138.346ns after launch.
+# External mic tCO<=100ns + assumed cable/PCB<=20ns + output<=4ns + input<=5ns.
+# These 20ns/4ns/5ns budgets require routed audit and on-board waveform checks.
+# Zero virtual input delay below measures FPGA pad path only, not mic latency.
+create_clock -name async_pad_ref -period 8.000
+create_generated_clock -name pdm3072 -source [get_pins {clocks.u_audio.u_audio_pll.u_gpll/CLKOUT0}] -divide_by 40 [get_ports {mic_clk[0]}]
+set_input_delay -clock async_pad_ref -max 0.000 [get_ports {pdm_data[*]}]
+set_input_delay -clock async_pad_ref -min 0.000 [get_ports {pdm_data[*]}]
+set_max_delay 5.000 -datapath_only -from [get_ports {pdm_data[*]}] -to [get_cells -hierarchical {*data_meta*}]
+set_false_path -hold -from [get_ports {pdm_data[*]}] -to [get_cells -hierarchical {*data_meta*}]
+set_output_delay -clock audio122 -max 0.000 [get_ports {mic_clk[1] mic_clk[2] mic_clk[3] mic_clk[4] mic_clk[5] mic_clk[6] mic_clk[7]}]
+set_output_delay -clock audio122 -min 0.000 [get_ports {mic_clk[1] mic_clk[2] mic_clk[3] mic_clk[4] mic_clk[5] mic_clk[6] mic_clk[7]}]
+set_max_delay 4.000 -datapath_only -from [get_clocks audio122] -to [get_ports {mic_clk[*]}]
+set_max_delay 7.500 -datapath_only -from [get_clocks cpu63] -to [get_ports {mic_clk[*]}]
+set_false_path -hold -to [get_ports {mic_clk[*]}]
+# UART and LEDs have no synchronous external receiver.
+set_output_delay -clock cpu63 -max 0.000 [get_ports {uart_tx led[*]}]
+set_output_delay -clock cpu63 -min 0.000 [get_ports {uart_tx led[*]}]
+set_max_delay 20.000 -datapath_only -to [get_ports {uart_tx led[*]}]
+set_false_path -hold -to [get_ports {uart_tx led[*]}]
+
+set_false_path -from [get_pins {clocks.u_cpu_pll.u_gpll/LOCK}]
+set_false_path -to [get_pins {clocks.u_cpu_pll.u_gpll/RST}]
+set_input_delay -clock cpu63 -max 0.000 [get_ports uart_rx]
+set_input_delay -clock cpu63 -min 0.000 [get_ports uart_rx]
+set_max_delay 7.500 -datapath_only -from [get_ports uart_rx] -to [get_cells -hierarchical {*rx_meta*}]
+set_false_path -hold -from [get_ports uart_rx] -to [get_cells -hierarchical {*rx_meta*}]
+
+# Engineering upper-bound PCLK clock, not a measured camera timing claim.
+create_clock -name cam_pclk -period 10.416667 [get_ports cam_pclk]
+set_clock_uncertainty 0.150 [get_clocks cam_pclk]
+# Assumed falling-edge data launch; actual DVP setup/hold requires a scope.
+set_input_delay -clock cam_pclk -clock_fall -max 2.000 [get_ports {cam_data[*] cam_vsync cam_href}]
+set_input_delay -clock cam_pclk -clock_fall -min 0.000 [get_ports {cam_data[*] cam_vsync cam_href}]
+set_max_delay 7.500 -datapath_only -from [get_clocks cam_pclk] -to [get_clocks cpu63]
+set_max_delay 7.500 -datapath_only -from [get_clocks cpu63] -to [get_clocks cam_pclk]
+set_false_path -hold -from [get_clocks cam_pclk] -to [get_clocks cpu63]
+set_false_path -hold -from [get_clocks cpu63] -to [get_clocks cam_pclk]
+set_input_delay -clock cpu63 -max 0.000 [get_ports {cam_scl cam_sda}]
+set_input_delay -clock cpu63 -min 0.000 [get_ports {cam_scl cam_sda}]
+set_max_delay 7.500 -datapath_only -from [get_ports {cam_scl cam_sda}] -to [get_cells -hierarchical {*scl_sync* *sda_sync*}]
+set_false_path -hold -from [get_ports {cam_scl cam_sda}]
+set_output_delay -clock cpu63 -max 0.000 [get_ports {cam_scl cam_sda cam_reset_n cam_pwdn}]
+set_output_delay -clock cpu63 -min 0.000 [get_ports {cam_scl cam_sda cam_reset_n cam_pwdn}]
+set_max_delay 20.000 -datapath_only -to [get_ports {cam_scl cam_sda cam_reset_n cam_pwdn}]
+set_false_path -hold -to [get_ports {cam_scl cam_sda cam_reset_n cam_pwdn}]
+
+create_clock -name ref125 -period 8.000 [get_ports clk_p]
+create_clock -name rx125 -period 8.000 [get_ports PHY0_RXC]
+create_generated_clock -name eth250 -source [get_ports clk_p] -multiply_by 2 [get_pins {video.clocks.u_pll_eth.u_gpll/CLKOUT0}]
+create_generated_clock -name eth125 -source [get_pins {video.clocks.u_pll_eth.u_gpll/CLKOUT0}] -divide_by 2 [get_pins {video.clocks.u_eth_div/CLKDIVOUT}]
+set_clock_uncertainty 0.150 [get_clocks {ref125 rx125 eth250 eth125}]
+set_false_path -from [get_pins {video.clocks.u_pll_eth.u_gpll/LOCK}]
+set_false_path -to [get_pins {video.clocks.u_pll_eth.u_gpll/RST video.clocks.u_eth_div/RST_N}]
+###==== BEGIN "Generated Clocks"
+create_generated_clock -name {rst_clk} -source [get_ports {clk_p}] [get_pins {video.ddr.u_ddrphy_top.rst_clk_gpll/clkout0}] -master_clock [get_clocks {ref125}] -multiply_by {16} -divide_by {16}
+create_generated_clock -name {ddrphy_sysclk} -source [get_ports {clk_p}] [get_pins {video.ddr.u_ddrphy_top.ddrphy_gpll/clkout0}] -master_clock [get_clocks {ref125}] -multiply_by {16} -divide_by {16}
+create_generated_clock -name {phy_dq_clk_0} -source [get_ports {clk_p}] [get_pins {video.ddr.u_ddrphy_top.ddrphy_slice_top.i_dqs_bank[0].ddrphy_ppll/clkoutphy}] -master_clock [get_clocks {ref125}] -multiply_by {16} -divide_by {2}
+create_generated_clock -name {phy_dq_sysclk_0} -source [get_pins {video.ddr.u_ddrphy_top.ddrphy_slice_top.i_dqs_bank[0].ddrphy_ppll/clkoutphy}] [get_pins {video.ddr.u_ddrphy_top.ddrphy_slice_top.i_dqs_bank[0].u_ddrphy_ioclkdiv/CLKDIVOUT}] -master_clock [get_clocks {phy_dq_clk_0}] -edges {5 13 21} -edge_shift {0 0 0}
+set_multicycle_path 2 -from [get_clocks ddrphy_sysclk] -to [get_clocks phy_dq_sysclk_0]
+create_generated_clock -name {phy_dq_clk_1} -source [get_ports {clk_p}] [get_pins {video.ddr.u_ddrphy_top.ddrphy_slice_top.i_dqs_bank[1].ddrphy_ppll/clkoutphy}] -master_clock [get_clocks {ref125}] -multiply_by {16} -divide_by {2}
+create_generated_clock -name {phy_dq_sysclk_1} -source [get_pins {video.ddr.u_ddrphy_top.ddrphy_slice_top.i_dqs_bank[1].ddrphy_ppll/clkoutphy}] [get_pins {video.ddr.u_ddrphy_top.ddrphy_slice_top.i_dqs_bank[1].u_ddrphy_ioclkdiv/CLKDIVOUT}] -master_clock [get_clocks {phy_dq_clk_1}] -edges {5 13 21} -edge_shift {0 0 0}
+set_multicycle_path 2 -from [get_clocks ddrphy_sysclk] -to [get_clocks phy_dq_sysclk_1]
+set_clock_uncertainty {0.4} -from [get_clocks {ddrphy_sysclk}] -to [get_clocks {phy_dq_sysclk_0}] -setup -hold
+set_clock_uncertainty {0.4} -from [get_clocks {phy_dq_sysclk_0}] -to [get_clocks {ddrphy_sysclk}] -setup -hold
+set_clock_uncertainty {0.4} -from [get_clocks {ddrphy_sysclk}] -to [get_clocks {phy_dq_sysclk_1}] -setup -hold
+set_clock_uncertainty {0.4} -from [get_clocks {phy_dq_sysclk_1}] -to [get_clocks {ddrphy_sysclk}] -setup -hold
+set_clock_groups -name rst_clk -asynchronous -group [get_clocks {rst_clk}]
+set_clock_groups -name phy_dq_clk_0 -asynchronous -group [get_clocks {phy_dq_clk_0}]
+set_clock_groups -name phy_dq_clk_1 -asynchronous -group [get_clocks {phy_dq_clk_1}]
+
+set_false_path -from [get_pins -hierarchical {video.ddr*/*lock*}]
+set_max_delay 7.500 -datapath_only -from [get_clocks cpu63] -to [get_clocks eth125]
+set_false_path -hold -from [get_clocks cpu63] -to [get_clocks eth125]
+set_max_delay 7.500 -datapath_only -from [get_clocks eth125] -to [get_clocks cpu63]
+set_false_path -hold -from [get_clocks eth125] -to [get_clocks cpu63]
+set_max_delay 7.500 -datapath_only -from [get_clocks cpu63] -to [get_clocks ddrphy_sysclk]
+set_false_path -hold -from [get_clocks cpu63] -to [get_clocks ddrphy_sysclk]
+set_max_delay 7.500 -datapath_only -from [get_clocks ddrphy_sysclk] -to [get_clocks cpu63]
+set_false_path -hold -from [get_clocks ddrphy_sysclk] -to [get_clocks cpu63]
+set_max_delay 7.500 -datapath_only -from [get_clocks cam_pclk] -to [get_clocks ddrphy_sysclk]
+set_false_path -hold -from [get_clocks cam_pclk] -to [get_clocks ddrphy_sysclk]
+set_max_delay 7.500 -datapath_only -from [get_clocks ddrphy_sysclk] -to [get_clocks cam_pclk]
+set_false_path -hold -from [get_clocks ddrphy_sysclk] -to [get_clocks cam_pclk]
+set_max_delay 7.500 -datapath_only -from [get_clocks eth125] -to [get_clocks ddrphy_sysclk]
+set_false_path -hold -from [get_clocks eth125] -to [get_clocks ddrphy_sysclk]
+set_max_delay 7.500 -datapath_only -from [get_clocks ddrphy_sysclk] -to [get_clocks eth125]
+set_false_path -hold -from [get_clocks ddrphy_sysclk] -to [get_clocks eth125]
+set_max_delay 7.500 -datapath_only -from [get_clocks rx125] -to [get_clocks eth125]
+set_false_path -hold -from [get_clocks rx125] -to [get_clocks eth125]
+set_max_delay 7.500 -datapath_only -from [get_clocks eth125] -to [get_clocks rx125]
+set_false_path -hold -from [get_clocks eth125] -to [get_clocks rx125]
+
+create_clock -name rx_data_launch -period 8.000 -waveform {2.000 6.000}
+set_input_delay -clock rx_data_launch -max 1.000 [get_ports {PHY0_RXD[*] PHY0_RXCTRL}]
+set_input_delay -clock rx_data_launch -min -1.000 [get_ports {PHY0_RXD[*] PHY0_RXCTRL}]
+set_input_delay -clock rx_data_launch -clock_fall -add_delay -max 1.000 [get_ports {PHY0_RXD[*] PHY0_RXCTRL}]
+set_input_delay -clock rx_data_launch -clock_fall -add_delay -min -1.000 [get_ports {PHY0_RXD[*] PHY0_RXCTRL}]
+
+# TX source-side contract: six physical outputs, including forwarded TXC,
+# share one zero reference. RTL8211F enables internal TX delay via MDIO.
+# Required FPGA same-edge physical spread is <=0.300 ns; adding the external
+# PCB skew budget <=0.200 ns meets the PHY's undelayed-source +/-0.500 ns.
+# PDS raw MaxSkew includes +/-0.050 ns of common source jitter. The 0.400 ns
+# raw bound is NOT the acceptance limit: check_tx_source must verify both
+# common terms, remove them once, and independently enforce physical <=0.300.
+# It also checks the permitted TXC edge polarities and output duty cycle.
+create_clock -name tx_pad_ref -period 8.000
+set_clock_uncertainty 0.000 [get_clocks tx_pad_ref]
+set_output_delay -clock tx_pad_ref -max 0.000 [get_ports {PHY0_TXC PHY0_TXD[*] PHY0_TXCTRL}]
+set_output_delay -clock tx_pad_ref -min 0.000 [get_ports {PHY0_TXC PHY0_TXD[*] PHY0_TXCTRL}]
+set_output_delay -clock tx_pad_ref -clock_fall -add_delay -max 0.000 [get_ports {PHY0_TXC PHY0_TXD[*] PHY0_TXCTRL}]
+set_output_delay -clock tx_pad_ref -clock_fall -add_delay -min 0.000 [get_ports {PHY0_TXC PHY0_TXD[*] PHY0_TXCTRL}]
+set_max_skew -rise_from [get_clocks eth125] -to [get_ports {PHY0_TXC PHY0_TXD[*] PHY0_TXCTRL}] 0.400
+set_max_skew -fall_from [get_clocks eth125] -to [get_ports {PHY0_TXC PHY0_TXD[*] PHY0_TXCTRL}] 0.400
+# An explicit internal path bound replaces an artificial virtual-clock setup
+# relation. The full clock-tree/CPPR paths remain in PDS's separate skew audit.
+set_max_delay 2.500 -datapath_only -from [get_clocks eth125] -to [get_ports {PHY0_TXC PHY0_TXD[*] PHY0_TXCTRL}]
+
+# Clause 22 control: PHY data is valid within 300 ns of MDC rising; it is
+# sampled near the next falling edge 504 ns later through two FFs.
+create_generated_clock -name mdc992k -source [get_pins {video.clocks.u_eth_div/CLKDIVOUT}] -divide_by 126 [get_ports PHY0_MDC]
+# As for PDM, zero-reference input delay + 7.5 ns bound measures the FPGA
+# portion; external 300 ns + synchronizer16 ns + this7.5 ns is <504 ns.
+set_input_delay -clock async_pad_ref -max 0.000 [get_ports PHY0_MDIO]
+set_input_delay -clock async_pad_ref -min 0.000 [get_ports PHY0_MDIO]
+set_max_delay 7.500 -datapath_only -from [get_ports PHY0_MDIO] -to [get_cells -hierarchical {*mdio_meta*}]
+set_false_path -hold -from [get_ports PHY0_MDIO] -to [get_cells -hierarchical {*mdio_meta*}]
+set_output_delay -clock mdc992k -max 12.000 [get_ports PHY0_MDIO]
+set_output_delay -clock mdc992k -min -12.000 [get_ports PHY0_MDIO]
+# MDC is transaction gated and may restart at any 125 MHz phase. Output data
+# and OE change only on its falling edge. Bound their physical path to 8 ns
+# (20 ns total minus 12 ns external setup) rather than assuming every 125 MHz
+# launch edge can change MDIO. RTL guarantees the remaining 504 ns window.
+set_max_delay 20.000 -datapath_only -to [get_ports PHY0_MDIO]
+set_false_path -hold -to [get_ports PHY0_MDIO]
+set_max_delay 7.500 -datapath_only -to [get_ports PHY0_MDC]
+set_false_path -hold -to [get_ports PHY0_MDC]
+set_output_delay -clock eth125 -max 0.000 [get_ports RSTN_OUT]
+set_output_delay -clock eth125 -min 0.000 [get_ports RSTN_OUT]
+set_max_delay 20.000 -datapath_only -to [get_ports RSTN_OUT]
+set_false_path -hold -to [get_ports RSTN_OUT]
+
+

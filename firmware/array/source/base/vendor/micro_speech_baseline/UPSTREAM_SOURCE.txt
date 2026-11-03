@@ -1,0 +1,8 @@
+field	value_type	value
+upstream	text	https://github.com/tensorflow/tflite-micro
+commit	text	dbf45f1fdbe8f7bfa645e16d1f61f71490da66cf
+legacy_tensorflow_commit	text	a4dfb8d1a71385bd6d122e4f27f86dcebb96712d
+kissfft_commit	text	918336beac80868ad3011cb283063bb224e3e5da
+license	text	TFLM/TensorFlow Apache-2.0 LICENSE; KissFFT BSD-style COPYING; official training README attributes Speech Commands data to Google under CC BY. See SOURCE_NOTICE.md.
+scope	text	Offline reference only. Does not install or execute TensorFlow.
+original_manifest_sha256	text	f0f570330873309191b15521523cf09a35dd10fde9a1978ed1a90ede8fd1d089

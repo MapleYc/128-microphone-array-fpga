@@ -1,0 +1,11 @@
+format: host-local-source-bindings-v1
+files:
+  host/audio_gain.py: 134866cf39391a2b79fdd86453f776cab5ded3459b9fda18015a2121239ab45e
+  host/audio_playback.py: 61230539198efe7aae24ea75fe9a0c0d5dc28b2215b6438d4ffeec27e942a827
+  host/command_gate.py: a2683172af490b9f544950ccb1f6e0fcc5d0d81af431e081d05c133ffe9a4aeb
+  host/interference_control.py: 50ff902ec2329e75ed0d099db2e0a9574ea2d3dd92a6a2e18eef6822e1276836
+  host/meeting_monitor.py: b278faeb929fa170efe0f50d2f4eb1e1ae0523789141c9b64cd74362046e1f93
+  host/mono_input_profile.py: de7abe5b330f04e64286b2e1bd9abec5afa7ad4f2b45d95ded6011c5dd404730
+  host/native_paths.py: 5f2908ef981a06a5204674c0ef81d3b5d2b17313b76f05ef6737f10cf4ab4569
+  host/structured_store.py: 720eb618627aa7ddf29be963536d46146cde9b702cfd3d757fee862cde37a560
+  host/video_protocol.py: 9c37a1c527b2c5c6a3d804b2adaf5eca113bad22fab9e1c57abca8e77732b421

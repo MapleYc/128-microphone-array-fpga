@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.19)
+project(MicArrayStreamingPost LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui)
+add_library(stream_post SHARED realtime_post_stream.cpp src/analysis/radix2fft.cpp src/media/bandpassfilter.cpp src/media/logmmseprocessor.cpp src/media/automaticgaincontrol.cpp)
+target_include_directories(stream_post PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_link_libraries(stream_post PRIVATE Qt6::Core Qt6::Gui)
